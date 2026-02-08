@@ -1,0 +1,70 @@
+{
+  "name": "@mzedstudio/llm-cache",
+  "description": "LLM request/response caching with tiered TTL for Convex.",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "keywords": [
+    "convex",
+    "component",
+    "llm",
+    "cache",
+    "openai",
+    "ai"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:*",
+    "dev:backend": "convex dev --typecheck-components",
+    "dev:build": "chokidar 'tsconfig*.json' 'src/**/*.ts' -i '**/*.test.ts' -c 'npm run build:codegen' --initial",
+    "build": "tsc --project ./tsconfig.build.json",
+    "build:codegen": "npx convex codegen --component-dir ./src/component && npm run build",
+    "build:clean": "rm -rf dist *.tsbuildinfo && npm run build:codegen",
+    "typecheck": "tsc --noEmit --composite false",
+    "test": "vitest run",
+    "test:watch": "vitest --clearScreen false",
+    "preversion": "npm run build:clean && npm test && npm run typecheck"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "./dist/client/index.js",
+  "types": "./dist/client/index.d.ts",
+  "module": "./dist/client/index.js",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/client/index.d.ts",
+      "default": "./dist/client/index.js"
+    },
+    "./test": "./src/test.ts",
+    "./_generated/component.js": {
+      "types": "./dist/component/_generated/component.d.ts"
+    },
+    "./_generated/component": {
+      "types": "./dist/component/_generated/component.d.ts"
+    },
+    "./convex.config.js": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    },
+    "./convex.config": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    }
+  },
+  "peerDependencies": {
+    "convex": "^1.31.7"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@types/node": "^22.10.5",
+    "chokidar-cli": "^3.0.0",
+    "convex": "1.31.7",
+    "convex-test": "^0.0.41",
+    "npm-run-all2": "^8.0.4",
+    "typescript": "^5.6.3",
+    "vite": "^7.3.1",
+    "vitest": "^2.1.5"
+  }
+}

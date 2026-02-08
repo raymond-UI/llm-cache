@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "strict": true,
+    "target": "ESNext",
+    "lib": ["ES2021", "dom"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "paths": {
+      "@mzedstudio/llm-cache": ["../../src/client/index.ts"],
+      "@mzedstudio/llm-cache/*": ["../../src/*", "../../dist/*"]
+    }
+  },
+  "include": ["./**/*"],
+  "exclude": ["_generated"]
+}
