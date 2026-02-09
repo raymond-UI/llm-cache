@@ -22,6 +22,19 @@ export default defineSchema({
     .index("by_createdAt", ["createdAt"])
     .index("by_model_createdAt", ["model", "createdAt"]),
 
+  responseHistory: defineTable({
+    cacheKey: v.string(),
+    request: v.any(),
+    response: v.any(),
+    model: v.string(),
+    modelVersion: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    metadata: v.optional(v.any()),
+    storedAt: v.number(),
+  })
+    .index("by_cacheKey", ["cacheKey"])
+    .index("by_cacheKey_storedAt", ["cacheKey", "storedAt"]),
+
   cacheConfig: defineTable({
     singleton: v.literal("config"),
     defaultTtlMs: v.optional(v.number()),

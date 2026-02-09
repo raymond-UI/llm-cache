@@ -14,6 +14,7 @@ export type {
   CacheStats,
   CleanupResult,
   ConfigUpdate,
+  HistoryEntry,
 } from "../component/types.js";
 export {
   cacheEntryValidator,
@@ -21,6 +22,7 @@ export {
   configDocValidator,
   cacheStatsValidator,
   cleanupResultValidator,
+  historyEntryValidator,
 } from "../component/types.js";
 
 type QueryCtx = Pick<GenericQueryCtx<GenericDataModel>, "runQuery">;

@@ -1,6 +1,6 @@
 import { query, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { cacheEntryValidator } from "./types";
+import { cacheEntryValidator, historyEntryValidator } from "./types";
 import { generateCacheKey } from "./normalize";
 import { loadConfig } from "./config";
 
@@ -52,14 +52,14 @@ export const queryEntries = query({
 });
 
 /**
- * Get the current cached response for a given request.
- * Returns an array (for forward compatibility if versioned history is added later).
+ * Get the full response history for a given request (time travel).
+ * Returns all historical responses plus the current one, ordered oldest-first.
  */
 export const history = query({
   args: {
     request: v.any(),
   },
-  returns: v.array(cacheEntryValidator),
+  returns: v.array(historyEntryValidator),
   handler: async (ctx, args) => {
     const config = await loadConfig(ctx);
     const cacheKey = await generateCacheKey(
@@ -67,12 +67,46 @@ export const history = query({
       config.normalizeRequests !== false,
     );
 
-    const entry = await ctx.db
+    // Fetch archived responses (oldest first)
+    const archived = await ctx.db
+      .query("responseHistory")
+      .withIndex("by_cacheKey_storedAt", (q) => q.eq("cacheKey", cacheKey))
+      .order("asc")
+      .collect();
+
+    const entries = archived.map((doc) => ({
+      cacheKey: doc.cacheKey,
+      request: doc.request,
+      response: doc.response,
+      model: doc.model,
+      modelVersion: doc.modelVersion,
+      tags: doc.tags,
+      metadata: doc.metadata,
+      storedAt: doc.storedAt,
+      isCurrent: false,
+    }));
+
+    // Fetch current entry
+    const current = await ctx.db
       .query("cachedResponses")
       .withIndex("by_cacheKey", (q) => q.eq("cacheKey", cacheKey))
       .unique();
 
-    return entry ? [entry] : [];
+    if (current) {
+      entries.push({
+        cacheKey: current.cacheKey,
+        request: current.request,
+        response: current.response,
+        model: current.model,
+        modelVersion: current.modelVersion,
+        tags: current.tags,
+        metadata: current.metadata,
+        storedAt: current.createdAt,
+        isCurrent: true,
+      });
+    }
+
+    return entries;
   },
 });
 

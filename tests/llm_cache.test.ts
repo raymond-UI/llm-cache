@@ -431,7 +431,7 @@ describe("LLM Cache Component", () => {
     expect(results.length).toBe(3);
   });
 
-  test("history returns entries for a request", async () => {
+  test("history returns current entry for a request", async () => {
     const t = makeTest();
     const request = makeRequest();
 
@@ -440,6 +440,84 @@ describe("LLM Cache Component", () => {
     const entries = await t.query("queries:history", { request });
     expect(entries.length).toBe(1);
     expect(entries[0].request).toEqual(request);
+    expect(entries[0].isCurrent).toBe(true);
+    expect(entries[0].response).toEqual({ v: 1 });
+  });
+
+  // ─── Time Travel (Response History) ────────────────────────────
+
+  test("store archives old response when response changes", async () => {
+    const t = makeTest();
+    const request = makeRequest();
+
+    await t.mutation("cache:store", { request, response: { v: 1 } });
+    await t.mutation("cache:store", { request, response: { v: 2 } });
+    await t.mutation("cache:store", { request, response: { v: 3 } });
+
+    const entries = await t.query("queries:history", { request });
+    expect(entries.length).toBe(3);
+
+    // Oldest first
+    expect(entries[0].response).toEqual({ v: 1 });
+    expect(entries[0].isCurrent).toBe(false);
+    expect(entries[1].response).toEqual({ v: 2 });
+    expect(entries[1].isCurrent).toBe(false);
+    expect(entries[2].response).toEqual({ v: 3 });
+    expect(entries[2].isCurrent).toBe(true);
+  });
+
+  test("store does not archive when response is identical", async () => {
+    const t = makeTest();
+    const request = makeRequest();
+    const response = { choices: [{ message: { content: "Same" } }] };
+
+    await t.mutation("cache:store", { request, response });
+    await t.mutation("cache:store", { request, response });
+    await t.mutation("cache:store", { request, response });
+
+    const entries = await t.query("queries:history", { request });
+    // Only 1 entry (current), no archived duplicates
+    expect(entries.length).toBe(1);
+    expect(entries[0].isCurrent).toBe(true);
+  });
+
+  test("history returns empty array for unknown request", async () => {
+    const t = makeTest();
+    const entries = await t.query("queries:history", {
+      request: makeRequest({ model: "nonexistent" }),
+    });
+    expect(entries.length).toBe(0);
+  });
+
+  test("history preserves model and tags from archived entries", async () => {
+    const t = makeTest();
+    const request = makeRequest();
+
+    await t.mutation("cache:store", {
+      request,
+      response: { v: 1 },
+      tags: ["v1-tag"],
+      modelVersion: "v1",
+    });
+    await t.mutation("cache:store", {
+      request,
+      response: { v: 2 },
+      tags: ["v2-tag"],
+      modelVersion: "v2",
+    });
+
+    const entries = await t.query("queries:history", { request });
+    expect(entries.length).toBe(2);
+
+    // Archived entry preserves original tags/version
+    expect(entries[0].modelVersion).toBe("v1");
+    expect(entries[0].tags).toEqual(["v1-tag"]);
+    expect(entries[0].isCurrent).toBe(false);
+
+    // Current entry has updated tags/version
+    expect(entries[1].modelVersion).toBe("v2");
+    expect(entries[1].tags).toEqual(["v2-tag"]);
+    expect(entries[1].isCurrent).toBe(true);
   });
 
   // ─── Invalidation ─────────────────────────────────────────────

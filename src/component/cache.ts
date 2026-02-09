@@ -125,6 +125,22 @@ export const store = mutation({
       .unique();
 
     if (existing) {
+      // Archive old response to history if it changed
+      const oldJson = JSON.stringify(existing.response);
+      const newJson = JSON.stringify(args.response);
+      if (oldJson !== newJson) {
+        await ctx.db.insert("responseHistory", {
+          cacheKey,
+          request: existing.request,
+          response: existing.response,
+          model: existing.model,
+          modelVersion: existing.modelVersion,
+          tags: existing.tags,
+          metadata: existing.metadata,
+          storedAt: existing.createdAt,
+        });
+      }
+
       await ctx.db.patch(existing._id, {
         response: args.response,
         modelVersion: args.modelVersion,

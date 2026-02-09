@@ -9,6 +9,7 @@ import { ModeToggle } from "./mode-toggle";
 const NAV_LINKS = [
   { href: "/", label: "Prompt" },
   { href: "/explorer", label: "Explorer" },
+  { href: "/history", label: "History" },
   { href: "/admin", label: "Admin" },
   { href: "/normalize", label: "Normalize" },
 ] as const;

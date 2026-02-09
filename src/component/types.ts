@@ -20,6 +20,21 @@ export const cacheEntryValidator = v.object({
 
 export type CacheEntry = Infer<typeof cacheEntryValidator>;
 
+// --- History entry validator (unified shape for time travel) ---
+export const historyEntryValidator = v.object({
+  cacheKey: v.string(),
+  request: v.any(),
+  response: v.any(),
+  model: v.string(),
+  modelVersion: v.optional(v.string()),
+  tags: v.optional(v.array(v.string())),
+  metadata: v.optional(v.any()),
+  storedAt: v.number(),
+  isCurrent: v.boolean(),
+});
+
+export type HistoryEntry = Infer<typeof historyEntryValidator>;
+
 // --- Config validators ---
 export const configUpdateValidator = v.object({
   defaultTtlMs: v.optional(v.number()),
