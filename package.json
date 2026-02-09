@@ -1,15 +1,18 @@
 {
   "name": "@mzedstudio/llm-cache",
-  "description": "LLM request/response caching with tiered TTL for Convex.",
+  "description": "LLM request/response caching with tiered TTL, time travel, and request normalization for Convex.",
   "version": "0.1.0",
   "license": "Apache-2.0",
+  "author": "mzedstudio",
   "keywords": [
     "convex",
-    "component",
+    "convex-component",
     "llm",
     "cache",
     "openai",
-    "ai"
+    "ai",
+    "ttl",
+    "idempotency"
   ],
   "type": "module",
   "scripts": {
