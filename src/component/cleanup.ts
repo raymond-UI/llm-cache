@@ -1,7 +1,7 @@
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { cleanupResultValidator } from "./types";
+import { cleanupResultValidator, type CleanupResult } from "./types";
 
 /**
  * Delete expired cache entries. Supports dry-run mode and batch size control.
@@ -12,15 +12,15 @@ export const cleanup = action({
     dryRun: v.optional(v.boolean()),
   },
   returns: cleanupResultValidator,
-  handler: async (ctx, args) => {
-    const limit = args.batchSize ?? 100;
+  handler: async (ctx, args): Promise<CleanupResult> => {
+    const limit: number = args.batchSize ?? 100;
 
-    const expired = await ctx.runQuery(internal.queries.expiredBatch, {
-      now: Date.now(),
-      limit,
-    });
+    const expired: Array<{ cacheKey: string }> = await ctx.runQuery(
+      internal.queries.expiredBatch,
+      { now: Date.now(), limit },
+    );
 
-    const keys = expired.map((item: { cacheKey: string }) => item.cacheKey);
+    const keys: string[] = expired.map((item) => item.cacheKey);
 
     if (!args.dryRun && keys.length > 0) {
       await ctx.runMutation(internal.manage.deleteBatch, { cacheKeys: keys });
