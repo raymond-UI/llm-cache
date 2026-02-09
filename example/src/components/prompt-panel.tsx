@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAction } from "convex/react";
 import { Send, Zap, Clock } from "lucide-react";
+import { toast } from "sonner";
 
 import { api } from "../../convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const MODELS = ["gpt-4o", "claude-3.5-sonnet", "gpt-3.5-turbo"] as const;
+const MODELS = [
+  { id: "openai/gpt-4o-mini", label: "GPT-4o Mini" },
+  { id: "anthropic/claude-3.5-haiku", label: "Claude 3.5 Haiku" },
+  { id: "google/gemini-2.0-flash-001", label: "Gemini 2.0 Flash" },
+] as const;
 
 const TIER_LABELS: Record<number, { label: string; variant: "default" | "secondary" | "outline" }> = {
   0: { label: "Default", variant: "outline" },
@@ -37,7 +42,7 @@ type PromptResult = {
 
 export default function PromptPanel() {
   const [prompt, setPrompt] = useState("What is the capital of France?");
-  const [model, setModel] = useState<string>("gpt-4o");
+  const [model, setModel] = useState<string>("openai/gpt-4o-mini");
   const [temperature, setTemperature] = useState("0.7");
   const [tags, setTags] = useState("");
   const [pin, setPin] = useState(false);
@@ -45,7 +50,7 @@ export default function PromptPanel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<PromptResult | null>(null);
 
-  const sendPrompt = useAction(api.llm.sendPrompt);
+  const sendPrompt = useAction(api.llmActions.sendPrompt);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,20 +58,22 @@ export default function PromptPanel() {
 
     setIsSubmitting(true);
     try {
+      const parsedTags = tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
       const res = await sendPrompt({
         messages: [{ role: "user", content: prompt }],
         model,
         temperature: parseFloat(temperature) || 0.7,
-        tags: tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
+        tags: parsedTags.length > 0 ? parsedTags : undefined,
         pin: pin || undefined,
         modelVersion: modelVersion.trim() || undefined,
       });
       setResult(res as PromptResult);
     } catch (err) {
       console.error("sendPrompt failed:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to send prompt");
     } finally {
       setIsSubmitting(false);
     }
@@ -107,7 +114,7 @@ export default function PromptPanel() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <div className="w-40">
+              <div className="w-48">
                 <Label>Model</Label>
                 <Select value={model} onValueChange={(v) => v && setModel(v)}>
                   <SelectTrigger className="mt-1">
@@ -115,8 +122,8 @@ export default function PromptPanel() {
                   </SelectTrigger>
                   <SelectContent>
                     {MODELS.map((m) => (
-                      <SelectItem key={m} value={m}>
-                        {m}
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

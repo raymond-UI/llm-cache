@@ -21,7 +21,7 @@ export default function NormalizationDemo() {
   const [results, setResults] = useState<DemoResult[] | null>(null);
   const [isRunning, setIsRunning] = useState(false);
 
-  const runDemo = useAction(api.llm.normalizationDemo);
+  const runDemo = useAction(api.llmActions.normalizationDemo);
 
   async function handleRun() {
     setIsRunning(true);

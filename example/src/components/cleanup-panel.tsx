@@ -25,7 +25,7 @@ export default function CleanupPanel() {
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<CleanupResult | null>(null);
 
-  const cleanup = useAction(api.llm.cleanupExpired);
+  const cleanup = useAction(api.llmActions.cleanupExpired);
 
   async function handleCleanup() {
     setIsRunning(true);
