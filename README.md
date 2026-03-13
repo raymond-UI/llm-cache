@@ -1,6 +1,12 @@
 # @mzedstudio/llm-cache
 
+[![Convex Component](https://www.convex.dev/components/badge/mzedstudio/llm-cache)](https://www.convex.dev/components/mzedstudio/llm-cache)
+[![npm version](https://img.shields.io/npm/v/@mzedstudio/llm-cache)](https://www.npmjs.com/package/@mzedstudio/llm-cache)
+[![npm downloads](https://img.shields.io/npm/dw/@mzedstudio/llm-cache)](https://www.npmjs.com/package/@mzedstudio/llm-cache)
+
 A [Convex component](https://docs.convex.dev/components) that caches LLM API request/response pairs with tiered TTL, time travel, and built-in observability. Stop paying for duplicate calls — get instant responses for identical prompts.
+
+[Live Demo](https://prompt-workbench-tau.vercel.app/)
 
 ## Features
 
